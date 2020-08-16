@@ -4,12 +4,37 @@
 \alias{MFAssignCHO_RMD}
 \title{Assigns all possible CHO molecular formulae to each row of input data frame}
 \usage{
-MFAssignCHO_RMD(peaks, isopeaks = "none", ionMode, lowMW = 100,
-  highMW = 1000, POEx = 0, NOEx = 0, Ex = 0, Mx = 0, NH4x = 0,
-  Zx = 1, Ox = 30, ppm_err = 3, SN = 0, O_Cmin = 0, O_Cmax = 2.5,
-  H_Cmin = 0.3, H_Cmax = 3, DBEOmin = -13, DBEOmax = 13, Omin = 0,
-  HetCut = "off", NMScut = "on", DeNovo = 1000, nLoop = 5,
-  Ambig = "off", MSMS = "off")
+MFAssignCHO_RMD(
+  peaks,
+  isopeaks = "none",
+  ionMode,
+  lowMW = 100,
+  highMW = 1000,
+  POEx = 0,
+  NOEx = 0,
+  Ex = 0,
+  Mx = 0,
+  NH4x = 0,
+  Zx = 1,
+  Ox = 30,
+  ppm_err = 3,
+  SN = 0,
+  O_Cmin = 0,
+  O_Cmax = 2.5,
+  H_Cmin = 0.3,
+  H_Cmax = 3,
+  DBEOmin = -13,
+  DBEOmax = 13,
+  Omin = 0,
+  max_def = 0.9,
+  min_def = 0.5,
+  HetCut = "off",
+  NMScut = "on",
+  DeNovo = 1000,
+  nLoop = 5,
+  Ambig = "off",
+  MSMS = "off"
+)
 }
 \arguments{
 \item{peaks}{data frame, Monoisotopic Masses}
@@ -45,10 +70,10 @@ Sets the amount of Ammonium adduct to be used in assignment. Default is 0.}
 Sets the amount of charge to be used in assignment. Default is 1.}
 
 \item{Ox}{numeric:
-Ox sets the maximum number of oxygen looked for in the CHOFIT core, it limits the number of loops performed}
+Ox sets the maximum number of oxygen looked for in the CHOFIT core, it limits the number of loops performed.}
 
 \item{ppm_err}{numeric:
-ppm_err parameter sets the error tolerance (ppm) for formula assignment. Default is 3.}
+ppm_err parameter sets the error tolerance (ppm) for formula assignment and polyisotope matching. Default is 3.}
 
 \item{SN}{numeric:
 SN parameter set the signal to noise cut for formula assignment. Default is 0.}
@@ -74,6 +99,12 @@ DBEOmax parameter sets upper limit for DBE minus oxygen QA parameter. Default is
 
 \item{Omin}{numeric:
 Omin parameter sets lower limit for oxygen number in assigned formula. Default is 0.}
+
+\item{max_def}{numeric:
+Value for upper limit of mass defect for using floor() instead of round() for KMD. Default is 0.9}
+
+\item{min_def}{numeric:
+Value for lower limit of mass defect for using floor() instead of round() for KMD. Default is 0.5}
 
 \item{HetCut}{character:
 HetCut turns on or off the high heteroatom QA parameter. Default is "off".}

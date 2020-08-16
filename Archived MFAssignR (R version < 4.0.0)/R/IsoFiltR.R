@@ -1,22 +1,20 @@
 #' Identifies and separates likely isotopic masses from monoisotopic masses
 #'
 #' IsoFiltR separates likely isotopic masses from monoisotopic masses in a
-#' mass list. It can identify likely 13C isotopic
+#' mass list. It can identify likely 13C and 34S isotopic
 #' masses and put them in a separate mass list from the monoisotopic
 #' masses. This should be done prior to formula assignment in order
 #' to lessen the chances of incorrectly assigned formulas, where, for
 #' example a 13C containing CHO formula can be assigned to a
-#' monoistopic CHNO formula.
+#' monoistopic CHNOS formula.
 #'
 #' The only necessary input is a two column data frame with the abundance in the
 #' first column and the measured ion mass in the second column. This should be the
 #' raw mass list output.
 #'
-#' At this time only the 13C isotope can be identified, although plans to improve
-#' the number of isotopes to be available are in process. The output of this function
-#' is a list of dataframes. Dataframe 1 contains the flagged monoisotopic masses, and
-#' all masses that did not have a matching isotopic mass. The second dataframe contains
-#' the masses flagged as isotopic. These two dataframes should next be run in the
+#' The output of this function is a list of dataframes. Dataframe 1 contains the flagged
+#' monoisotopic masses, and all masses that did not have a matching isotopic mass. The
+#' second dataframe contains the masses flagged as isotopic. These two dataframes should next be run in the
 #'  \code{\link{MFAssignCHO}} or \code{\link{MFAssign}} to assign formulas to the masses.
 #'
 #' Note that the classification of isotopic or monoisotopic from this function is not
@@ -29,11 +27,11 @@
 #' @param SN numeric:
 #' Sets the noise cut for the data, peaks below this value will not be evaluated
 #'
-#' @param Diffrat numeric:
-#' A value multiplied by the minimum allowed 13C ratio to expand the allowed range
+#' @param Carbrat numeric:
+#' Sets the maximum 13C/12C ratio that is allowed for matching, default is 60
 #'
 #' @param Sulfrat numeric:
-#' Sets the maximum 34S ratio that is allowed for matching
+#' Sets the maximum 34S/32S ratio that is allowed for matching, default is 30
 #'
 #' @param Sulferr numeric:
 #' Sets the maximum allowed error (ppm) for 34S mass matching, default is 5
@@ -52,7 +50,7 @@
 
 #peaks <- DataX[DataX$Intensity > 3*20,]
 
-IsoFiltR <- function(peaks, SN = 0, Diffrat = 0.1, Sulfrat = 30, Sulferr = 5, Carberr = 5) {
+IsoFiltR <- function(peaks, SN = 0, Carbrat = 60, Sulfrat = 30, Sulferr = 5, Carberr = 5) {
 
   names(peaks)[1] <- "Exp_mass"
   names(peaks)[2] <- "Abundance"
@@ -174,65 +172,13 @@ IsoFiltR <- function(peaks, SN = 0, Diffrat = 0.1, Sulfrat = 30, Sulferr = 5, Ca
   Align1 <- merge(Align1, IsoAbund2, by.x = "Iso_mass2", by.y = "Iso_mass2", all= T)
   Align1 <- Align1[!is.na(Align1$Mono_mass),]
 
-  Align1 <- Align1[Align1$Iso_Abund1 < Align1$Mono_Abund,]
-  #Diffrat <- 0
-  #Calculating Abundance Ratios for QA purposes
-  #Ratios estimated with Sisweb using multiples of C
+  Align1 <- Align1[Align1$Iso_Abund1 < (Carbrat/100) * Align1$Mono_Abund,]  #New Adjustment 12/06/19
 
-  # Align1$Abund <- Align1$Iso_Abund1 / Align1$Mono_Abund
-  # Align100 <- Align1[Align1$Abund < 0.0973 &  Align1$Mono_mass <=100,]
-  # Align200 <- Align1[Align1$Abund < 0.1839 & Align1$Abund > Diffrat * 0.0433 & Align1$Mono_mass <=200&
-  #                      Align1$Mono_mass > 100,]
-  # Align300 <- Align1[Align1$Abund < 0.2704 & Align1$Abund > Diffrat * 0.0757 & Align1$Mono_mass <=300&
-  #                      Align1$Mono_mass > 200,]
-  # Align400 <- Align1[Align1$Abund < 0.3677 & Align1$Abund > Diffrat * 0.1082 & Align1$Mono_mass <=400&
-  #                      Align1$Mono_mass > 300,]
-  # Align500 <- Align1[Align1$Abund < 0.4543 & Align1$Abund > Diffrat * 0.1406 & Align1$Mono_mass <=500&
-  #                      Align1$Mono_mass > 400,]
-  # Align600 <- Align1[Align1$Abund < 0.5408 & Align1$Abund > Diffrat * 0.1731 & Align1$Mono_mass <=600&
-  #                      Align1$Mono_mass > 500,]
-  # Align700 <- Align1[Align1$Abund < 0.6381 & Align1$Abund > Diffrat * 0.2055 & Align1$Mono_mass <=700&
-  #                      Align1$Mono_mass > 600,]
-  # Align800 <- Align1[Align1$Abund < 0.7247 & Align1$Abund > Diffrat * 0.2379 & Align1$Mono_mass <=800&
-  #                      Align1$Mono_mass > 700,]
-  # Align900 <- Align1[Align1$Abund < 0.8112 & Align1$Abund > Diffrat * 0.2704 & Align1$Mono_mass <=900&
-  #                      Align1$Mono_mass > 800,]
-  # Align1000 <- Align1[Align1$Abund < 0.9085 & Align1$Abund > Diffrat * 0.3167 & Align1$Mono_mass <=1000&
-  #                       Align1$Mono_mass > 900,]
-  #
-  # Align1 <- rbind(Align100, Align200, Align300, Align400, Align500, Align600, Align700,
-  #                 Align800, Align900, Align1000)
-
-  #Now to address the abundances of 13C_2 isotopes
-  #Ratios estimated with Sisweb using multiples of CH4O
 
   IsoPair <- Align1[is.na(Align1$Iso_mass2),]
   IsoTri <- Align1[!is.na(Align1$Iso_mass2),]
-  IsoTri <- IsoTri[IsoTri$Iso_Abund2 < IsoTri$Mono_Abund,]
-  # IsoTri$Abund <- IsoTri$Iso_Abund2 / IsoTri$Mono_Abund
-  #
-  # IsoTri100 <- IsoTri[IsoTri$Abund < 0.0042 &  IsoTri$Mono_mass <=100,]
-  # IsoTri200 <- IsoTri[IsoTri$Abund < 0.0159 & IsoTri$Abund > Diffrat * 0.00007 & IsoTri$Mono_mass <=200&
-  #                       IsoTri$Mono_mass > 100,]
-  # IsoTri300 <- IsoTri[IsoTri$Abund < 0.0351 & IsoTri$Abund > Diffrat * 0.0025 & IsoTri$Mono_mass <=300&
-  #                       IsoTri$Mono_mass > 200,]
-  # IsoTri400 <- IsoTri[IsoTri$Abund < 0.0656 & IsoTri$Abund > Diffrat * 0.0053 & IsoTri$Mono_mass <=400&
-  #                       IsoTri$Mono_mass > 300,]
-  # IsoTri500 <- IsoTri[IsoTri$Abund < 0.1007 & IsoTri$Abund > Diffrat * 0.0091 & IsoTri$Mono_mass <=500&
-  #                       IsoTri$Mono_mass > 400,]
-  # IsoTri600 <- IsoTri[IsoTri$Abund < 0.1433 & IsoTri$Abund > Diffrat * 0.014 & IsoTri$Mono_mass <=600&
-  #                       IsoTri$Mono_mass > 500,]
-  # IsoTri700 <- IsoTri[IsoTri$Abund < 0.2002 & IsoTri$Abund > Diffrat * 0.02 & IsoTri$Mono_mass <=700&
-  #                       IsoTri$Mono_mass > 600,]
-  # IsoTri800 <- IsoTri[IsoTri$Abund < 0.2586 & IsoTri$Abund > Diffrat * 0.027 & IsoTri$Mono_mass <=800&
-  #                       IsoTri$Mono_mass > 700,]
-  # IsoTri900 <- IsoTri[IsoTri$Abund < 0.3246 & IsoTri$Abund > Diffrat * 0.0351 & IsoTri$Mono_mass <=900&
-  #                       IsoTri$Mono_mass > 800,]
-  # IsoTri1000 <- IsoTri[IsoTri$Abund < 0.4078 & IsoTri$Abund > Diffrat * 0.0475 & IsoTri$Mono_mass <=1000&
-  #                        IsoTri$Mono_mass > 900,]
-  #
-  # IsoTri <- rbind(IsoTri100, IsoTri200, IsoTri300, IsoTri400, IsoTri500, IsoTri600, IsoTri700,
-  #                 IsoTri800, IsoTri900, IsoTri1000)
+  IsoTri <- IsoTri[IsoTri$Iso_Abund2 < (Carbrat/100) * IsoTri$Iso_Abund1,]  #New Adjustment 12/06/19
+
 
   FinalAlign <- rbind(IsoPair, IsoTri)
   #Now need to use the masses to determine which ones have not been accounted for.
